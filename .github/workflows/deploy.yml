@@ -35,4 +35,4 @@ jobs:
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
 
       - name: Deploy stack
-        run: ./develop_deploy.sh
+        run: cdk deploy --require-approval never
