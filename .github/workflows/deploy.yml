@@ -13,7 +13,7 @@ jobs:
       - name: Build and publish docker image to Docker Hub.
         run: |
           export TAG="$GITHUB_SHA"
-          sudo docker build -t mahdou/node-app-image:${TAG}
+          sudo docker build -t mahdou/node-app-image:${TAG} .
           sudo docker push mahdou/node-example-1:${TAG}
 
   Deploy:
