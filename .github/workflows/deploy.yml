@@ -15,7 +15,7 @@ jobs:
       - name: Build the Docker image
         run: |
           export TAG="$GITHUB_SHA"
-          sudo docker build -t ${env.REGISTRY}:${TAG} .
+          sudo docker build -t $REGISTRY:$TAG .
 
   push_to_registry:
     name: Push Docker image to Docker Hub
@@ -33,7 +33,7 @@ jobs:
       - name: Publish docker image to Docker Hub.
         run: |
           export TAG="$GITHUB_SHA"
-          sudo docker push ${env.REGISTRY}:${TAG}
+          sudo docker push $REGISTRY:$TAG
 
   Deploy:
     name: Deploy to EC2
