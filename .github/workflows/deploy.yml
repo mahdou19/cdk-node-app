@@ -3,36 +3,23 @@ name: CDK Deploy
 on:
   push:
     branches: ["develop"]
-
 jobs:
-  aws_cdk:
+  Deploy:
+    name: Deploy to EC2
     runs-on: ubuntu-latest
+
     steps:
-      - name: Check out code
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 2
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+      - uses: actions/checkout@v2
+      - name: Build & Deploy
+        env:
+          PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          HOSTNAME: ${{ secrets.EC2_HOST }}
+          USER_NAME: ${{ secrets.EC2_USER }}
 
-      - name: Setup Node.js environment
-        uses: actions/setup-node@v2
-        with:
-          node-version: 16
-          cache: "npm"
+        run: |
+          echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
+          ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
 
-      - name: Install dependencies
-        run: npm install
-
-      - name: Install AWS CDK
-        run: npm i -g aws-cdk
-
-      - name: Configure aws credentials
-        uses: aws-actions/configure-aws-credentials@v1-node16
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
-          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
-
-      - name: Deploy stack
-        run: cdk deploy --require-approval never
+            echo "Hello from the remote server!"
+            sudo docker run --rm -d --name app-node -p 80:80 mahdou/node-example-1
+          '
