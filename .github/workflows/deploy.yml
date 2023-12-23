@@ -4,6 +4,18 @@ on:
   push:
     branches: ["develop"]
 jobs:
+  Build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build and publish docker image to Docker Hub.
+        run: |
+          export TAG="$GITHUB_SHA"
+          sudo docker build -t mahdou/node-app-image:${TAG}
+          sudo docker push mahdou/node-example-1:${TAG}
+
   Deploy:
     name: Deploy to EC2
     runs-on: ubuntu-latest
