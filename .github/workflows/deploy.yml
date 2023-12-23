@@ -15,13 +15,12 @@ jobs:
           PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           HOSTNAME: ${{ secrets.EC2_HOST }}
           USER_NAME: ${{ secrets.EC2_USER }}
-          COMMIT_SHA: $GITHUB_SHA
 
         run: |
-          echo '${COMMIT_SHA}'
+          echo "GITHUB_SHA: ${GITHUB_SHA}"
           echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
           ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
-            CONTAINER_NAME="app-node-${COMMIT_SHA}"
+            CONTAINER_NAME="app-node-${GITHUB_SHA}"
             sudo docker stop $CONTAINER_NAME || true
             echo "Hello from the remote server!"
             sudo docker run --rm -d --name $CONTAINER_NAME -p 80:80 mahdou/node-example-1
