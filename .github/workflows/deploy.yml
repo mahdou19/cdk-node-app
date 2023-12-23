@@ -20,7 +20,9 @@ jobs:
         run: |
           echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
           ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
-
+            CONTAINER_NAME="app-node-'${COMMIT_SHA}'"
+            docker stop $CONTAINER_NAME || true
+            docker rm $CONTAINER_NAME || true
             echo "Hello from the remote server!"
-            sudo docker run --rm -d --name app-node-${COMMIT_SHA} -p 80:80 mahdou/node-example-1
+            sudo docker run --rm -d --name $CONTAINER_NAME -p 80:80 mahdou/node-example-1
           '
