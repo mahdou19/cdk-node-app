@@ -3,36 +3,44 @@ name: CDK Deploy
 on:
   push:
     branches: ["develop"]
+env:
+  REGISTRY: mahdou/node-example-1
+
 jobs:
-  Build:
-    name: Build
+  develop:
     runs-on: ubuntu-latest
-
+    env:
+      TAG: ${{ github.sha }}
+      DOCKER_IMAGE_NAME: ${{secrets.DOCKER_IMAGE_NAME}}
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
     steps:
-      - uses: actions/checkout@v2
-      - name: Build and publish docker image to Docker Hub.
+      - uses: actions/checkout@v3
+      - name: Build the Docker image
         run: |
-          export TAG="$GITHUB_SHA"
-          sudo docker build -t mahdou/node-app-image:${TAG}
-          sudo docker push mahdou/node-example-1:${TAG}
+          echo "TAG value: $TAG"
+          echo "username value: $DOCKER_USERNAME"
+          sudo docker build -t $DOCKER_USERNAME/$DOCKER_IMAGE_NAME:$TAG .
+      - name: Login and Push image to docker
+        uses: actions/checkout@v2
+      - name: Login Docker Hub
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          password-stdin: true
+      - name: Push image to Docker Hub
+        run: |
+          echo "TAG2 value: $TAG"
+          echo "DOKER IMAGES"
+          sudo docker images
+          echo "${{ secrets.DOCKER_PASSWORD }}" | sudo docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+          sudo docker push $DOCKER_USERNAME/$DOCKER_IMAGE_NAME:$TAG
 
-  Deploy:
-    name: Deploy to EC2
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v2
-      - name: Build & Deploy
+      - name: Deploy to EC2
         env:
           PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           HOSTNAME: ${{ secrets.EC2_HOST }}
           USER_NAME: ${{ secrets.EC2_USER }}
-
         run: |
           echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
-          ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
-            CONTAINER_NAME="app-node"
-            sudo docker stop $CONTAINER_NAME || true
-            echo "Hello from the remote server!"
-            sudo docker run --rm -d --name $CONTAINER_NAME -p 80:80 mahdou/node-example-1
-          '
+          ./develop_deploy.sh

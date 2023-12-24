@@ -1,22 +1,6 @@
-#!/bin/bash
-
-cd ./cdk_deploy
-
-npm install
-
-cdk deploy
-
-ipInstanceEc2=$(aws cloudformation describe-stacks --stack-name CdkDeployStack --query "Stacks[0].Outputs[0].OutputValue" --output text)
-
-
-echo "-----------------------------------------"
-
-cd ..
-
-chmod 400 example-1.pem
-
-ssh -i "example-1.pem" ec2-user@$ipInstanceEc2
-
-sudo docker pull mahdou/node-example-1
-
-
+   ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
+            export TAG="'"$TAG"'"
+            export DOCKER_IMAGE_NAME="'"$DOCKER_IMAGE_NAME"'"
+            export DOCKER_USERNAME="'"$DOCKER_USERNAME"'"
+            sudo docker run --rm -p 80:80 -d $DOCKER_USERNAME/$DOCKER_IMAGE_NAME:$TAG
+          '
